@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.drools.workbench.screens.scenariosimulation.migration;
+package org.drools.workbench.screens.scenariosimulation.kogito.client.migration;
 
 import java.util.List;
 import java.util.Map;
@@ -23,8 +23,8 @@ import java.util.Objects;
 import com.google.gwt.xml.client.Document;
 import com.google.gwt.xml.client.Element;
 import com.google.gwt.xml.client.Node;
-import org.drools.workbench.screens.scenariosimulation.interfaces.ThrowingConsumer;
-import org.drools.workbench.screens.scenariosimulation.utils.GWTParserUtil;
+import org.drools.workbench.screens.scenariosimulation.client.utils.ScenarioSimulationUtils;
+import org.drools.workbench.screens.scenariosimulation.kogito.client.util.GWTParserUtil;
 
 import static org.drools.scenariosimulation.api.utils.ConstantsHolder.BACKGROUND_DATA_NODE;
 import static org.drools.scenariosimulation.api.utils.ConstantsHolder.BACKGROUND_NODE;
@@ -43,7 +43,6 @@ import static org.drools.scenariosimulation.api.utils.ConstantsHolder.SETTINGS;
 import static org.drools.scenariosimulation.api.utils.ConstantsHolder.SETTINGS_NODE;
 import static org.drools.scenariosimulation.api.utils.ConstantsHolder.SIMULATION_DESCRIPTOR_NODE;
 import static org.drools.scenariosimulation.api.utils.ConstantsHolder.SIMULATION_NODE;
-import static org.drools.workbench.screens.scenariosimulation.migration.ScenarioSimulationXMLPersistence.getColumnWidth;
 
 public class InMemoryMigrationStrategy implements MigrationStrategy {
 
@@ -182,7 +181,7 @@ public class InMemoryMigrationStrategy implements MigrationStrategy {
             factMappingNodeList.forEach(factMappingNode -> {
                 List<Node> expressionIdentifierNamesNodes = GWTParserUtil.getNestedChildrenNodesList(factMappingNode, EXPRESSION_IDENTIFIER_NODE, "name");
                 String expressionIdentifierName = expressionIdentifierNamesNodes.get(0).getNodeValue();
-                GWTParserUtil.createNodeAndAppend(factMappingNode, "columnWidth", Double.toString(getColumnWidth(expressionIdentifierName)));
+                GWTParserUtil.createNodeAndAppend(factMappingNode, "columnWidth", Double.toString(ScenarioSimulationUtils.getColumnWidth(expressionIdentifierName)));
             });
             updateVersion(document, "1.7");
         };

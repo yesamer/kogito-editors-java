@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.drools.workbench.screens.scenariosimulation.utils;
+package org.drools.workbench.screens.scenariosimulation.kogito.client.util;
 
 import java.util.Arrays;
 import java.util.List;
@@ -25,12 +25,17 @@ import com.google.gwt.xml.client.Document;
 import com.google.gwt.xml.client.Node;
 import com.google.gwt.xml.client.NodeList;
 import com.google.gwt.xml.client.XMLParser;
+import com.google.gwtmockito.GwtMockitoTestRunner;
+import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+@Ignore
+@RunWith(GwtMockitoTestRunner.class)
 public class GWTParserUtilTest {
 
     private static final String MAIN_NODE = "Main";

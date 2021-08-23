@@ -14,16 +14,13 @@
  * limitations under the License.
  */
 
-package org.drools.workbench.screens.scenariosimulation.migration;
+package org.drools.workbench.screens.scenariosimulation.kogito.client.migration;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
+import com.google.gwt.regexp.shared.MatchResult;
+import com.google.gwt.regexp.shared.RegExp;
 import com.google.gwt.xml.client.Document;
-import org.drools.scenariosimulation.api.model.ExpressionIdentifier;
 import org.drools.scenariosimulation.api.model.ScenarioSimulationModel;
-import org.drools.workbench.screens.scenariosimulation.interfaces.ThrowingConsumer;
-import org.drools.workbench.screens.scenariosimulation.utils.GWTParserUtil;
+import org.drools.workbench.screens.scenariosimulation.kogito.client.util.GWTParserUtil;
 
 import static org.drools.scenariosimulation.api.utils.ConstantsHolder.BACKGROUND_NODE;
 import static org.drools.scenariosimulation.api.utils.ConstantsHolder.SCESIM_MODEL_DESCRIPTOR_NODE;
@@ -35,7 +32,7 @@ public class ScenarioSimulationXMLPersistence {
 
     private static final ScenarioSimulationXMLPersistence INSTANCE = new ScenarioSimulationXMLPersistence();
     private static final String CURRENT_VERSION = new ScenarioSimulationModel().getVersion();
-    private static final Pattern p = Pattern.compile("version=\"([0-9]+\\.[0-9]+)");
+    private static final RegExp VERSION_REGEX_PATTERN = RegExp.compile("version=\"([0-9]+\\.[0-9]+)");
 
     private MigrationStrategy migrationStrategy = new InMemoryMigrationStrategy();
 
@@ -62,55 +59,36 @@ public class ScenarioSimulationXMLPersistence {
         return toReturn;
     }
 
-    public static double getColumnWidth(String expressionIdentifierName) {
-        ExpressionIdentifier.NAME expressionName = ExpressionIdentifier.NAME.Other;
-        try {
-            expressionName = ExpressionIdentifier.NAME.valueOf(expressionIdentifierName);
-        } catch (IllegalArgumentException e) {
-            // ColumnId not recognized
-        }
-        switch (expressionName) {
-            case Index:
-                return 70;
-            case Description:
-                return 300;
-            default:
-                return 114;
-        }
-    }
-
-    /*
-    public ScenarioSimulationModel unmarshal(final String rawXml, boolean migrate) throws Exception {
+    public void migrate(final String rawXml) {
         if (rawXml == null || rawXml.trim().equals("")) {
             throw new IllegalArgumentException("Malformed file, content is empty!");
         }
 
-        String xml = migrate ? migrateIfNecessary(rawXml) : rawXml;
+        migrateIfNecessary(rawXml);
+        cleanUpUnusedNodes(rawXml);
+    }
 
-        return internalUnmarshal(xml);
-    }  */
-
-    public String migrateIfNecessary(String rawXml) throws Exception {
+    public String migrateIfNecessary(String rawXml) {
         String fileVersion = extractVersion(rawXml);
-        ThrowingConsumer<Document> migrator = getMigrationStrategy().start();
+        ThrowingConsumer<Document> migrator = migrationStrategy.start();
         boolean supported;
         switch (fileVersion) {
-            case "1.0":
-                migrator = migrator.andThen(getMigrationStrategy().from1_0to1_1());
-            case "1.1":
-                migrator = migrator.andThen(getMigrationStrategy().from1_1to1_2());
-            case "1.2":
-                migrator = migrator.andThen(getMigrationStrategy().from1_2to1_3());
-            case "1.3":
-                migrator = migrator.andThen(getMigrationStrategy().from1_3to1_4());
-            case "1.4":
-                migrator = migrator.andThen(getMigrationStrategy().from1_4to1_5());
-            case "1.5":
-                migrator = migrator.andThen(getMigrationStrategy().from1_5to1_6());
-            case "1.6":
-                migrator = migrator.andThen(getMigrationStrategy().from1_6to1_7());
+            case "1.0": //FallThrough is intended
+                migrator = migrator.andThen(migrationStrategy.from1_0to1_1());
+            case "1.1": //FallThrough is intended
+                migrator = migrator.andThen(migrationStrategy.from1_1to1_2());
+            case "1.2": //FallThrough is intended
+                migrator = migrator.andThen(migrationStrategy.from1_2to1_3());
+            case "1.3": //FallThrough is intended
+                migrator = migrator.andThen(migrationStrategy.from1_3to1_4());
+            case "1.4": //FallThrough is intended
+                migrator = migrator.andThen(migrationStrategy.from1_4to1_5());
+            case "1.5": //FallThrough is intended
+                migrator = migrator.andThen(migrationStrategy.from1_5to1_6());
+            case "1.6": //FallThrough is intended
+                migrator = migrator.andThen(migrationStrategy.from1_6to1_7());
             case "1.7":
-                migrator = migrator.andThen(getMigrationStrategy().from1_7to1_8());
+                migrator = migrator.andThen(migrationStrategy.from1_7to1_8());
                 supported = true;
                 break;
             default:
@@ -122,26 +100,19 @@ public class ScenarioSimulationXMLPersistence {
                                                        .append(" of the file is not supported. Current version is ")
                                                        .append(CURRENT_VERSION).toString());
         }
-        migrator = migrator.andThen(getMigrationStrategy().end());
+        migrator = migrator.andThen(migrationStrategy.end());
         Document document = GWTParserUtil.getDocument(rawXml);
         migrator.accept(document);
         return GWTParserUtil.getString(document);
     }
 
     public String extractVersion(String rawXml) {
-        Matcher m = p.matcher(rawXml);
+        MatchResult matchResult = VERSION_REGEX_PATTERN.exec(rawXml);
 
-        if (m.find()) {
-            return m.group(1);
+        if (matchResult != null) {
+            return matchResult.getGroup(1);
         }
         throw new IllegalArgumentException("Impossible to extract version from the file");
     }
 
-    public MigrationStrategy getMigrationStrategy() {
-        return migrationStrategy;
-    }
-
-    public void setMigrationStrategy(MigrationStrategy migrationStrategy) {
-        this.migrationStrategy = migrationStrategy;
-    }
 }

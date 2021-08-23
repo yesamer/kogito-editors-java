@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.drools.workbench.screens.scenariosimulation.interfaces;
+package org.drools.workbench.screens.scenariosimulation.kogito.client.migration;
 
 import java.util.Objects;
 
@@ -25,11 +25,11 @@ public interface ThrowingConsumer<T> {
         };
     }
 
-    void accept(T var1) throws Exception;
+    void accept(T var1);
 
     default ThrowingConsumer<T> andThen(ThrowingConsumer<? super T> after) {
         Objects.requireNonNull(after);
-        return (t) -> {
+        return t -> {
             this.accept(t);
             after.accept(t);
         };

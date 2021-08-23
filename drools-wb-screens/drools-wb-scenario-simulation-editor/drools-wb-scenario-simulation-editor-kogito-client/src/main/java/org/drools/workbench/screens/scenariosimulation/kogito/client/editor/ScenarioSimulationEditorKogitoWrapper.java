@@ -65,6 +65,7 @@ import org.drools.workbench.screens.scenariosimulation.kogito.client.editor.stra
 import org.drools.workbench.screens.scenariosimulation.kogito.client.handlers.ScenarioSimulationKogitoDocksHandler;
 import org.drools.workbench.screens.scenariosimulation.kogito.client.popup.ScenarioSimulationKogitoCreationPopupPresenter;
 import org.drools.workbench.screens.scenariosimulation.kogito.client.services.ScenarioSimulationKogitoDMNMarshallerService;
+import org.drools.workbench.screens.scenariosimulation.kogito.client.migration.ScenarioSimulationXMLPersistence;
 import org.drools.workbench.screens.scenariosimulation.model.SimulationRunResult;
 import org.jboss.errai.common.client.api.ErrorCallback;
 import org.jboss.errai.common.client.api.RemoteCallback;
@@ -362,8 +363,14 @@ public class ScenarioSimulationEditorKogitoWrapper extends MultiPageEditorContai
         SCESIMMainJs.marshall(scesimContainer, null, getJSInteropMarshallCallback(resolveCallbackFn));
     }
 
-    protected void unmarshallContent(String toUnmarshal) {
-        SCESIMMainJs.unmarshall(toUnmarshal, SCESIM, getJSInteropUnmarshallCallback());
+    protected void unmarshallContent(String rawXml) {
+        if (rawXml == null || rawXml.trim().equals("")) {
+            throw new IllegalArgumentException("Malformed file, content is empty!");
+        }
+
+        ScenarioSimulationXMLPersistence.getInstance().migrate(rawXml);
+
+        SCESIMMainJs.unmarshall(rawXml, SCESIM, getJSInteropUnmarshallCallback());
     }
 
     private JSIName makeJSINameForSCESIM() {

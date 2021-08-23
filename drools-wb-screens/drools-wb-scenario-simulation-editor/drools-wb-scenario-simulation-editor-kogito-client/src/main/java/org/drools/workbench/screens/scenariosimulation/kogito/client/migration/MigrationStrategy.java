@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-package org.drools.workbench.screens.scenariosimulation.migration;
+package org.drools.workbench.screens.scenariosimulation.kogito.client.migration;
 
 import com.google.gwt.xml.client.Document;
-import org.drools.workbench.screens.scenariosimulation.interfaces.ThrowingConsumer;
-import org.drools.workbench.screens.scenariosimulation.utils.GWTParserUtil;
+import org.drools.workbench.screens.scenariosimulation.kogito.client.util.GWTParserUtil;
 
 /**
  * Interface to define the migration strategy for scesim files

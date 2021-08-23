@@ -337,7 +337,7 @@ public class ScenarioSimulationUtils {
         return (int) context.getCellHeight();
     }
 
-    protected static double getColumnWidth(String columnId) {
+    public static double getColumnWidth(String columnId) {
         ExpressionIdentifier.NAME expressionName = ExpressionIdentifier.NAME.Other;
         try {
             expressionName = ExpressionIdentifier.NAME.valueOf(columnId);
