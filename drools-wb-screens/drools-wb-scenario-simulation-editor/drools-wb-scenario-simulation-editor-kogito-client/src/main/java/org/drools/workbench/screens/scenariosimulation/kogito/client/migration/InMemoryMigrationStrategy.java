@@ -180,7 +180,7 @@ public class InMemoryMigrationStrategy implements MigrationStrategy {
             final List<Node> factMappingNodeList = GWTParserUtil.getNestedChildrenNodesList(document, SIMULATION_DESCRIPTOR_NODE, FACT_MAPPINGS_NODE, FACT_MAPPING_NODE);
             factMappingNodeList.forEach(factMappingNode -> {
                 List<Node> expressionIdentifierNamesNodes = GWTParserUtil.getNestedChildrenNodesList(factMappingNode, EXPRESSION_IDENTIFIER_NODE, "name");
-                String expressionIdentifierName = expressionIdentifierNamesNodes.get(0).getNodeValue();
+                String expressionIdentifierName = expressionIdentifierNamesNodes.get(0).getFirstChild().getNodeValue();
                 GWTParserUtil.createNodeAndAppend(factMappingNode, "columnWidth", Double.toString(ScenarioSimulationUtils.getColumnWidth(expressionIdentifierName)));
             });
             updateVersion(document, "1.7");
@@ -198,7 +198,7 @@ public class InMemoryMigrationStrategy implements MigrationStrategy {
                         .findFirst()
                         .ifPresent(childNodeList -> {
                             final Node node = childNodeList.get(0);
-                            GWTParserUtil.createNodeAndAppend(settingsNode, node.getNodeName(), node.getNodeValue());
+                            GWTParserUtil.createNodeAndAppend(settingsNode, node.getNodeName(), node.getFirstChild().getNodeValue());
                             node.getParentNode().removeChild(node);
                         });
             }

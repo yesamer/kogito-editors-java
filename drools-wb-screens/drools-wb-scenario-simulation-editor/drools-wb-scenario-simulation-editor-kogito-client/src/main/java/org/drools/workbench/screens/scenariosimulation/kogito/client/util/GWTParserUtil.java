@@ -90,8 +90,11 @@ public class GWTParserUtil {
     public static void replaceNodeText(Document document, String containerNodeName, String nodeName, String toReplace, String replacement) {
         asStream(document.getElementsByTagName(containerNodeName))
                 .forEach(containerNode -> asStream(containerNode.getChildNodes())
-                        .filter(childNode -> Objects.equals(nodeName, childNode.getNodeName()) && Objects.equals(toReplace, childNode.getNodeValue()))
-                        .forEach(childNode -> childNode.setNodeValue(replacement)));
+                        .filter(childNode -> Objects.equals(nodeName, childNode.getNodeName()) &&
+                                childNode.getChildNodes().getLength() == 1 &&
+                                Objects.equals(childNode.getFirstChild().getNodeType(), Node.TEXT_NODE) &&
+                                Objects.equals(toReplace, childNode.getFirstChild().getNodeValue()))
+                        .forEach(childNode -> childNode.getFirstChild().setNodeValue(replacement)));
     }
 
     /**
@@ -112,8 +115,14 @@ public class GWTParserUtil {
                     Node childNode = childNodes.item(j);
                     if (Objects.equals(childNode.getNodeName(), childNodeNameToReplace)) {
                         Node replacement = document.createElement(childNodeNameReplacement);
-                        replacement.setNodeValue(childNode.getNodeValue());
-                        document.replaceChild(replacement, childNode);
+                        for (int k = 0; k < childNode.getChildNodes().getLength(); k++) {
+                            if (Objects.equals(childNode.getChildNodes().item(k).getNodeType(), Node.ELEMENT_NODE)) {
+                                replacement.appendChild(childNode.getChildNodes().item(k).cloneNode(true));
+                            } else if (Objects.equals(childNode.getFirstChild().getNodeType(), Node.TEXT_NODE)) {
+                                replacement.appendChild(document.createTextNode(childNode.getChildNodes().item(k).getNodeValue()));
+                            }
+                        }
+                        containerNode.replaceChild(replacement, childNode);
                     }
                 }
             }
@@ -145,7 +154,7 @@ public class GWTParserUtil {
 
     /**
      * Return a <code>Map</code> where the <code>key</code> is any <code>Node</code> inside the given <b>document</b>
-     * and the <b>value</b>   is the <b>node value</b> of the attribute with the given <b>attributeName</b>
+     * and the <b>value</b> is the <b>node value</b> of the attribute with the given <b>attributeName</b>
      * <p>
      * It returns an <b>empty</b> map no <code>Node</code> contains such attribute
      * @param document
@@ -183,7 +192,7 @@ public class GWTParserUtil {
                             Node childNode = document.createElement(childNodeName);
                             containerNode.appendChild(childNode);
                             if (nodeContent != null) {
-                                childNode.setNodeValue(nodeContent);
+                                childNode.appendChild(document.createTextNode(nodeContent));
                             }
                             return childNode;
                         }
@@ -209,7 +218,7 @@ public class GWTParserUtil {
                                              Node childNode = document.createElement(childNodeName);
                                              containerNode.appendChild(childNode);
                                              if (nodeContent != null) {
-                                                 childNode.setNodeValue(nodeContent);
+                                                 childNode.appendChild(document.createTextNode(nodeContent));
                                              }
                                              toReturn.put(containerNode, childNode);
                                          }));
@@ -240,7 +249,7 @@ public class GWTParserUtil {
     public static Node createNodeAtPosition(Node containerNode, String nodeToCreateName, String nodeContent, Integer position) {
         Node toReturn = containerNode.getOwnerDocument().createElement(nodeToCreateName);
         if (nodeContent != null) {
-            toReturn.setNodeValue(nodeContent);
+            toReturn.appendChild(containerNode.getOwnerDocument().createTextNode(nodeContent));
         }
         if (containerNode.hasChildNodes() && position != null && position < containerNode.getChildNodes().getLength()) {
             Node positionNode = containerNode.getChildNodes().item(position);
@@ -326,13 +335,12 @@ public class GWTParserUtil {
                 .collect(Collectors.toList());
     }
 
-    public static Document getDocument(String xml) /*throws ParserConfigurationException, IOException, SAXException*/ {
-        // parse the XML document into a DOM
+    public static Document getDocument(String xml) {
         return XMLParser.parse(xml);
     }
 
     public static String getString(Document toRead)  {
-        return toRead.getNodeValue();
+        return toRead.toString();
     }
 
     /**

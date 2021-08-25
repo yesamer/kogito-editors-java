@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Red Hat, Inc. and/or its affiliates.
+ * Copyright 2021 Red Hat, Inc. and/or its affiliates.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,27 +16,25 @@
 package org.drools.workbench.screens.scenariosimulation.kogito.client.util;
 
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
+import com.google.gwt.junit.client.GWTTestCase;
 import com.google.gwt.xml.client.Document;
 import com.google.gwt.xml.client.Node;
 import com.google.gwt.xml.client.NodeList;
 import com.google.gwt.xml.client.XMLParser;
-import com.google.gwtmockito.GwtMockitoTestRunner;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.junit.runner.RunWith;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-
-@Ignore
-@RunWith(GwtMockitoTestRunner.class)
-public class GWTParserUtilTest {
+/**
+ * To test GWTParserUtil, it is required to use the {@link GWTTestCase} framework.
+ * This because, the native GWT XML API are used in the Parser, and this is the only
+ * way to test it. Please notice, GWTTestCase relies on Junit3, therefore no @Test annotation
+ * are required. Methods must have 'test' prefix.
+ */
+public class GWTParserUtilTest extends GWTTestCase {
 
     private static final String MAIN_NODE = "Main";
     private static final String MAIN_ATTRIBUTE_NAME = "mainattribute";
@@ -54,26 +52,26 @@ public class GWTParserUtilTest {
     private static final String NESTING_NODE = "nesting";
     private static final String NESTED_NODE = "nested";
 
-    private static final String XML = "<" + MAIN_NODE + " " + MAIN_ATTRIBUTE_NAME + " =\"" + ATTRIBUTE_VALUE + "\">" +
-            "<" + TEST_NODE + ">" + TEST_NODE_CONTENT + "</" + TEST_NODE + ">" +
-            "<" + CHILD_NODE + " " + CHILD_ATTRIBUTE_NAME + " =\"" + ATTRIBUTE_VALUE + "\">" +
-            "<" + TEST_NODE + ">" + TEST_NODE_TOREMOVE_1 + "</" + TEST_NODE + ">" +
-            "<" + OTHER_NODE + ">" + OTHER_NODE_CONTENT_1 + "</" + OTHER_NODE + ">" +
-            "<" + NESTING_NODE + ">" +
-            "<" + NESTED_NODE + "/>" +
-            "</" + NESTING_NODE + ">" +
-            "</" + CHILD_NODE + ">" +
-            "<" + CHILD_NODE + " " + CHILD_ATTRIBUTE_NAME + " =\"" + ATTRIBUTE_VALUE + "\">" +
-            "<" + TEST_NODE + ">" + TEST_NODE_TOREMOVE_2 + "</" + TEST_NODE + ">" +
-            "<" + OTHER_NODE + ">" + OTHER_NODE_CONTENT_2 + "</" + OTHER_NODE + ">" +
-            "<" + NESTING_NODE + ">" +
-            "<" + NESTED_NODE + "/>" +
-            "</" + NESTING_NODE + ">" +
-            "</" + CHILD_NODE + ">" +
+    private static final String XML =
+            "<" + MAIN_NODE + " " + MAIN_ATTRIBUTE_NAME + " =\"" + ATTRIBUTE_VALUE + "\">" +
+                "<" + TEST_NODE + ">" + TEST_NODE_CONTENT + "</" + TEST_NODE + ">" +
+                "<" + CHILD_NODE + " " + CHILD_ATTRIBUTE_NAME + " =\"" + ATTRIBUTE_VALUE + "\">" +
+                    "<" + TEST_NODE + ">" + TEST_NODE_TOREMOVE_1 + "</" + TEST_NODE + ">" +
+                    "<" + OTHER_NODE + ">" + OTHER_NODE_CONTENT_1 + "</" + OTHER_NODE + ">" +
+                    "<" + NESTING_NODE + ">" +
+                        "<" + NESTED_NODE + "/>" +
+                    "</" + NESTING_NODE + ">" +
+                "</" + CHILD_NODE + ">" +
+                "<" + CHILD_NODE + " " + CHILD_ATTRIBUTE_NAME + " =\"" + ATTRIBUTE_VALUE + "\">" +
+                    "<" + TEST_NODE + ">" + TEST_NODE_TOREMOVE_2 + "</" + TEST_NODE + ">" +
+                    "<" + OTHER_NODE + ">" + OTHER_NODE_CONTENT_2 + "</" + OTHER_NODE + ">" +
+                    "<" + NESTING_NODE + ">" +
+                        "<" + NESTED_NODE + "/>" +
+                    "</" + NESTING_NODE + ">" +
+                "</" + CHILD_NODE + ">" +
             "</" + MAIN_NODE + ">";
 
-    @Test
-    public void cleanupNodesString() {
+    public void testCleanupNodesString() {
         String retrieved = GWTParserUtil.cleanupNodes(XML, CHILD_NODE, TEST_NODE);
         assertNotNull(retrieved);
         Map<Node, List<Node>> childrenNodes = GWTParserUtil.getChildrenNodesMap(retrieved, MAIN_NODE, TEST_NODE);
@@ -102,8 +100,7 @@ public class GWTParserUtilTest {
         });
     }
 
-    @Test
-    public void cleanupNodesDocument() {
+    public void testCleanupNodesDocument() {
         Document document = GWTParserUtil.getDocument(XML);
         GWTParserUtil.cleanupNodes(document, CHILD_NODE, TEST_NODE);
         assertNotNull(document);
@@ -133,8 +130,7 @@ public class GWTParserUtilTest {
         });
     }
 
-    @Test
-    public void replaceNodeText() {
+    public void testReplaceNodeText() {
         final String replacement = "replacement";
         Document document = GWTParserUtil.getDocument(XML);
         GWTParserUtil.replaceNodeText(document, MAIN_NODE, TEST_NODE, TEST_NODE_CONTENT, replacement);
@@ -144,11 +140,11 @@ public class GWTParserUtilTest {
         List<Node> testNodes = retrieved.values().iterator().next();
         assertNotNull(testNodes);
         assertEquals(1, testNodes.size());
-        assertEquals(replacement, testNodes.get(0).getNodeValue());
+        assertEquals(1, testNodes.get(0).getChildNodes().getLength());
+        assertEquals(replacement, testNodes.get(0).getFirstChild().getNodeValue());
     }
 
-    @Test
-    public void replaceNodeName() {
+    public void testReplaceNodeName() {
         final String replacement = "replacement";
         Document document = GWTParserUtil.getDocument(XML);
         GWTParserUtil.replaceNodeName(document, MAIN_NODE, TEST_NODE, replacement);
@@ -159,10 +155,29 @@ public class GWTParserUtilTest {
         assertNotNull(testNodes);
         assertEquals(1, testNodes.size());
         assertEquals("replacement", testNodes.get(0).getNodeName());
+        assertEquals(1, testNodes.get(0).getChildNodes().getLength());
+        assertEquals(TEST_NODE_CONTENT, testNodes.get(0).getFirstChild().getNodeValue());
     }
 
-    @Test
-    public void getAttributeValuesByNode() {
+    public void testReplaceNestingNodeName() {
+        final String replacement = "replacement";
+        Document document = GWTParserUtil.getDocument(XML);
+        GWTParserUtil.replaceNodeName(document, CHILD_NODE, NESTING_NODE, replacement);
+        final Map<Node, List<Node>> retrieved = GWTParserUtil.getChildrenNodesMap(document, CHILD_NODE, replacement);
+        assertNotNull(retrieved);
+        assertEquals(2, retrieved.size());
+        Iterator<List<Node>> iterator = retrieved.values().iterator();
+        while (iterator.hasNext()) {
+            List<Node> testNodes = iterator.next();
+            assertNotNull(testNodes);
+            assertEquals(1, testNodes.size());
+            assertEquals("replacement", testNodes.get(0).getNodeName());
+            assertEquals(1, testNodes.get(0).getChildNodes().getLength());
+            assertEquals(NESTED_NODE, testNodes.get(0).getFirstChild().getNodeName());
+        }
+    }
+
+    public void testGetAttributeValuesByNode() {
         Document document = GWTParserUtil.getDocument(XML);
         Map<Node, String> retrieved = GWTParserUtil.getAttributeValues(document, MAIN_NODE, MAIN_ATTRIBUTE_NAME);
         assertNotNull(retrieved);
@@ -180,8 +195,8 @@ public class GWTParserUtilTest {
         assertTrue(retrieved.isEmpty());
     }
 
-    @Test
-    public void getAllAttributeValues() {
+    //TODO
+    public void GetAllAttributeValues() {
         Document document = GWTParserUtil.getDocument(XML);
         Map<Node, String> retrieved = GWTParserUtil.getAttributeValues(document, MAIN_ATTRIBUTE_NAME);
         assertNotNull(retrieved);
@@ -193,8 +208,7 @@ public class GWTParserUtilTest {
         retrieved.values().forEach(attributeValue -> assertEquals(ATTRIBUTE_VALUE, attributeValue));
     }
 
-    @Test
-    public void setAttributeValue() {
+    public void testSetAttributeValue() {
         final String newValue = "NEW_VALUE";
         Document document = GWTParserUtil.getDocument(XML);
         GWTParserUtil.setAttributeValue(document, MAIN_NODE, MAIN_ATTRIBUTE_NAME, newValue);
@@ -209,8 +223,7 @@ public class GWTParserUtilTest {
         retrieved.values().forEach(attributeValue -> assertEquals(newValue, attributeValue));
     }
 
-    @Test
-    public void createNodes() {
+    public void testCreateNodes() {
         final String newNodeName = "NEW_NODE_NAME";
         final String newNodeValue = "NEW_NODE_VALUE";
         Document document = GWTParserUtil.getDocument(XML);
@@ -219,32 +232,35 @@ public class GWTParserUtilTest {
         Node created = (Node) retrieved.values().toArray()[0];
         assertNotNull(created);
         assertEquals(newNodeName, created.getNodeName());
-        assertEquals(newNodeValue, created.getNodeValue());
+        assertEquals(1, created.getChildNodes().getLength());
+        assertEquals(Node.TEXT_NODE, created.getFirstChild().getNodeType());
+        assertEquals(newNodeValue, created.getFirstChild().getNodeValue());
         retrieved = GWTParserUtil.createNodes(document, MAIN_NODE, newNodeName, null);
         assertEquals(1, retrieved.size());
         created = (Node) retrieved.values().toArray()[0];
         assertNotNull(created);
         assertEquals(newNodeName, created.getNodeName());
-        assertTrue(created.getNodeValue().isEmpty());
+        assertFalse(created.hasChildNodes());
 
         retrieved = GWTParserUtil.createNodes(document, CHILD_NODE, newNodeName, newNodeValue);
         assertEquals(2, retrieved.size());
         retrieved.forEach((key, createdNode) -> {
             assertNotNull(createdNode);
             assertEquals(newNodeName, createdNode.getNodeName());
-            assertEquals(newNodeValue, createdNode.getNodeValue());
+            assertEquals(1, createdNode.getChildNodes().getLength());
+            assertEquals(Node.TEXT_NODE, createdNode.getFirstChild().getNodeType());
+            assertEquals(newNodeValue, createdNode.getFirstChild().getNodeValue());
         });
         retrieved = GWTParserUtil.createNodes(document, CHILD_NODE, newNodeName, null);
         assertEquals(2, retrieved.size());
         retrieved.forEach((key, createdNode) -> {
             assertNotNull(createdNode);
             assertEquals(newNodeName, createdNode.getNodeName());
-            assertTrue(createdNode.getNodeValue().isEmpty());
+            assertFalse(createdNode.hasChildNodes());
         });
     }
 
-    @Test
-    public void createNestedNodes() {
+    public void testCreateNestedNodes() {
         final String newNodeName = "NEW_NODE_NAME";
         final String newNodeValue = "NEW_NODE_VALUE";
         Document document = GWTParserUtil.getDocument(XML);
@@ -253,32 +269,35 @@ public class GWTParserUtilTest {
         Node created = (Node) retrieved.values().toArray()[0];
         assertNotNull(created);
         assertEquals(newNodeName, created.getNodeName());
-        assertEquals(newNodeValue, created.getNodeValue());
+        assertEquals(1, created.getChildNodes().getLength());
+        assertEquals(Node.TEXT_NODE, created.getFirstChild().getNodeType());
+        assertEquals(newNodeValue, created.getFirstChild().getNodeValue());
         retrieved = GWTParserUtil.createNestedNodes(document, MAIN_NODE, TEST_NODE, newNodeName, null);
         assertEquals(1, retrieved.size());
         created = (Node) retrieved.values().toArray()[0];
         assertNotNull(created);
         assertEquals(newNodeName, created.getNodeName());
-        assertTrue(created.getNodeValue().isEmpty());
+        assertFalse(created.hasChildNodes());
 
         retrieved = GWTParserUtil.createNestedNodes(document, MAIN_NODE, CHILD_NODE, newNodeName, newNodeValue);
         assertEquals(2, retrieved.size());
         retrieved.forEach((key, createdNode) -> {
             assertNotNull(createdNode);
             assertEquals(newNodeName, createdNode.getNodeName());
-            assertEquals(newNodeValue, createdNode.getNodeValue());
+            assertEquals(1, createdNode.getChildNodes().getLength());
+            assertEquals(Node.TEXT_NODE, createdNode.getFirstChild().getNodeType());
+            assertEquals(newNodeValue, createdNode.getFirstChild().getNodeValue());
         });
         retrieved = GWTParserUtil.createNestedNodes(document, MAIN_NODE, CHILD_NODE, newNodeName, null);
         assertEquals(2, retrieved.size());
         retrieved.forEach((key, createdNode) -> {
             assertNotNull(createdNode);
             assertEquals(newNodeName, createdNode.getNodeName());
-            assertTrue(createdNode.getNodeValue().isEmpty());
+            assertFalse(createdNode.hasChildNodes());
         });
     }
 
-    @Test
-    public void createNodeAtPosition() {
+    public void testCreateNodeAtPosition() {
         String newNodeName = "NEW_NODE_NAME_0";
         String newNodeValue = "NEW_NODE_VALUE_=";
         Document document = GWTParserUtil.getDocument(XML);
@@ -288,26 +307,31 @@ public class GWTParserUtilTest {
         Node retrieved = GWTParserUtil.createNodeAtPosition(mainNode, newNodeName, newNodeValue, null);
         assertNotNull(retrieved);
         assertEquals(newNodeName, retrieved.getNodeName());
-        assertEquals(newNodeValue, retrieved.getNodeValue());
+        assertEquals(1, retrieved.getChildNodes().getLength());
+        assertEquals(Node.TEXT_NODE, retrieved.getFirstChild().getNodeType());
+        assertEquals(newNodeValue, retrieved.getFirstChild().getNodeValue());
         assertEquals(retrieved, mainNode.getChildNodes().item(mainNode.getChildNodes().getLength() - 1));
         newNodeName = "NEW_NODE_NAME_1";
         newNodeValue = "NEW_NODE_VALUE_1";
         retrieved = GWTParserUtil.createNodeAtPosition(mainNode, newNodeName, newNodeValue, 0);
         assertNotNull(retrieved);
         assertEquals(newNodeName, retrieved.getNodeName());
-        assertEquals(newNodeValue, retrieved.getNodeValue());
+        assertEquals(1, retrieved.getChildNodes().getLength());
+        assertEquals(Node.TEXT_NODE, retrieved.getFirstChild().getNodeType());
+        assertEquals(newNodeValue, retrieved.getFirstChild().getNodeValue());
         assertEquals(retrieved, mainNode.getChildNodes().item(0));
         newNodeName = "NEW_NODE_NAME_2";
         newNodeValue = "NEW_NODE_VALUE_2";
         retrieved = GWTParserUtil.createNodeAtPosition(mainNode, newNodeName, newNodeValue, 2);
         assertNotNull(retrieved);
         assertEquals(newNodeName, retrieved.getNodeName());
-        assertEquals(newNodeValue, retrieved.getNodeValue());
+        assertEquals(1, retrieved.getChildNodes().getLength());
+        assertEquals(Node.TEXT_NODE, retrieved.getFirstChild().getNodeType());
+        assertEquals(newNodeValue, retrieved.getFirstChild().getNodeValue());
         assertEquals(retrieved, mainNode.getChildNodes().item(2));
     }
 
-    @Test
-    public void createNodeAndAppend() {
+    public void testCreateNodeAndAppend() {
         String newNodeName0 = "NEW_NODE_NAME_0";
         String newNodeValue0 = "NEW_NODE_VALUE_=";
         Document document = GWTParserUtil.getDocument(XML);
@@ -318,7 +342,9 @@ public class GWTParserUtilTest {
         Node retrieved = GWTParserUtil.createNodeAndAppend(mainNode, newNodeName0, newNodeValue0);
         assertNotNull(retrieved);
         assertEquals(newNodeName0, retrieved.getNodeName());
-        assertEquals(newNodeValue0, retrieved.getNodeValue());
+        assertEquals(1, retrieved.getChildNodes().getLength());
+        assertEquals(Node.TEXT_NODE, retrieved.getFirstChild().getNodeType());
+        assertEquals(newNodeValue0, retrieved.getFirstChild().getNodeValue());
         assertEquals(retrieved, mainNode.getChildNodes().item(mainNode.getChildNodes().getLength() - 1));
         assertEquals(startingChildNodes + 1, mainNode.getChildNodes().getLength());
         String newNodeName1 = "NEW_NODE_NAME_1";
@@ -326,7 +352,9 @@ public class GWTParserUtilTest {
         retrieved = GWTParserUtil.createNodeAndAppend(mainNode, newNodeName1, newNodeValue1);
         assertNotNull(retrieved);
         assertEquals(newNodeName1, retrieved.getNodeName());
-        assertEquals(newNodeValue1, retrieved.getNodeValue());
+        assertEquals(1, retrieved.getChildNodes().getLength());
+        assertEquals(Node.TEXT_NODE, retrieved.getFirstChild().getNodeType());
+        assertEquals(newNodeValue1, retrieved.getFirstChild().getNodeValue());
         assertEquals(retrieved, mainNode.getChildNodes().item(mainNode.getChildNodes().getLength() - 1));
         assertEquals(startingChildNodes + 2, mainNode.getChildNodes().getLength());
         String newNodeName2 = "NEW_NODE_NAME_2";
@@ -334,20 +362,27 @@ public class GWTParserUtilTest {
         retrieved = GWTParserUtil.createNodeAndAppend(mainNode, newNodeName2, newNodeValue2);
         assertNotNull(retrieved);
         assertEquals(newNodeName2, retrieved.getNodeName());
-        assertEquals(newNodeValue2, retrieved.getNodeValue());
+        assertEquals(1, retrieved.getChildNodes().getLength());
+        assertEquals(Node.TEXT_NODE, retrieved.getFirstChild().getNodeType());
+        assertEquals(newNodeValue2, retrieved.getFirstChild().getNodeValue());
         assertEquals(retrieved, mainNode.getChildNodes().item(mainNode.getChildNodes().getLength() - 1));
         assertEquals(startingChildNodes + 3, mainNode.getChildNodes().getLength());
 
         assertEquals(newNodeName0, mainNode.getChildNodes().item(startingChildNodes).getNodeName());
-        assertEquals(newNodeValue0, mainNode.getChildNodes().item(startingChildNodes).getNodeValue());
+        assertEquals(1, mainNode.getChildNodes().item(startingChildNodes).getChildNodes().getLength());
+        assertEquals(Node.TEXT_NODE, mainNode.getChildNodes().item(startingChildNodes).getFirstChild().getNodeType());
+        assertEquals(newNodeValue0, mainNode.getChildNodes().item(startingChildNodes).getFirstChild().getNodeValue());
         assertEquals(newNodeName1, mainNode.getChildNodes().item(startingChildNodes + 1).getNodeName());
-        assertEquals(newNodeValue1, mainNode.getChildNodes().item(startingChildNodes + 1).getNodeValue());
+        assertEquals(1, mainNode.getChildNodes().item(startingChildNodes + 1).getChildNodes().getLength());
+        assertEquals(Node.TEXT_NODE, mainNode.getChildNodes().item(startingChildNodes + 1).getFirstChild().getNodeType());
+        assertEquals(newNodeValue1, mainNode.getChildNodes().item(startingChildNodes + 1).getFirstChild().getNodeValue());
         assertEquals(newNodeName2, mainNode.getChildNodes().item(startingChildNodes + 2).getNodeName());
-        assertEquals(newNodeValue2, mainNode.getChildNodes().item(startingChildNodes + 2).getNodeValue());
+        assertEquals(1, mainNode.getChildNodes().item(startingChildNodes + 2).getChildNodes().getLength());
+        assertEquals(Node.TEXT_NODE, mainNode.getChildNodes().item(startingChildNodes + 2).getFirstChild().getNodeType());
+        assertEquals(newNodeValue2, mainNode.getChildNodes().item(startingChildNodes + 2).getFirstChild().getNodeValue());
     }
 
-    @Test
-    public void getChildrenNodesFromDocument() {
+    public void testGetChildrenNodesFromDocument() {
         Document document = GWTParserUtil.getDocument(XML);
         Map<Node, List<Node>> retrieved = GWTParserUtil.getChildrenNodesMap(document, MAIN_NODE, TEST_NODE);
         assertNotNull(retrieved);
@@ -385,8 +420,7 @@ public class GWTParserUtilTest {
         }
     }
 
-    @Test
-    public void getChildrenNodesFromNode() {
+    public void testGetChildrenNodesFromNode() {
         Document document = GWTParserUtil.getDocument(XML);
         Map<Node, List<Node>> retrieved = GWTParserUtil.getChildrenNodesMap(document, MAIN_NODE, CHILD_NODE);
         assertNotNull(retrieved);
@@ -406,8 +440,7 @@ public class GWTParserUtilTest {
         assertEquals(NESTED_NODE, nodes.get(0).getNodeName());
     }
 
-    @Test
-    public void getNestedChildrenNodesMap() {
+    public void testGetNestedChildrenNodesMap() {
         Document document = GWTParserUtil.getDocument(XML);
         Map<Node, List<Node>> retrieved = GWTParserUtil.getNestedChildrenNodesMap(document, MAIN_NODE, CHILD_NODE, TEST_NODE);
         assertNotNull(retrieved);
@@ -427,8 +460,7 @@ public class GWTParserUtilTest {
         });
     }
 
-    @Test
-    public void getNestedChildrenNodesList() {
+    public void testGetNestedChildrenNodesList() {
         Document document = GWTParserUtil.getDocument(XML);
         List<Node> retrieved = GWTParserUtil.getNestedChildrenNodesList(document, MAIN_NODE, CHILD_NODE, TEST_NODE);
         assertNotNull(retrieved);
@@ -440,14 +472,12 @@ public class GWTParserUtilTest {
         retrieved.forEach(nestedNode -> assertEquals(NESTED_NODE, nestedNode.getNodeName()));
     }
 
-    @Test
-    public void getDocument() {
+    public void testGetDocument() {
         Document retrieved = GWTParserUtil.getDocument(XML);
         assertNotNull(retrieved);
     }
 
-    @Test
-    public void getString() {
+    public void testGetString() {
         Document document = XMLParser.createDocument();
         document.appendChild(document.createElement("CREATED"));
         String retrieved = GWTParserUtil.getString(document);
@@ -455,8 +485,7 @@ public class GWTParserUtilTest {
         assertTrue(retrieved.contains("CREATED"));
     }
 
-    @Test
-    public void asStream() {
+    public void testAsStream() {
         Document document = GWTParserUtil.getDocument(XML);
         final NodeList mainNodeList = document.getElementsByTagName("Main");
         commonCheckNodeStream(mainNodeList);
@@ -471,5 +500,10 @@ public class GWTParserUtilTest {
         AtomicInteger counter = new AtomicInteger();
         final Stream<Node> nodeStream = GWTParserUtil.asStream(src);
         nodeStream.forEach(node -> assertEquals(src.item(counter.getAndIncrement()), node));
+    }
+
+    @Override
+    public String getModuleName() {
+        return GWTParserUtilTest.class.getName();
     }
 }

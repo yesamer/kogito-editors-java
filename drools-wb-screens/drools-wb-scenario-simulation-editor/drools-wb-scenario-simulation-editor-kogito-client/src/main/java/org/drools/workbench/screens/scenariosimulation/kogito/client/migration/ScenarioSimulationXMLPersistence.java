@@ -48,8 +48,8 @@ public class ScenarioSimulationXMLPersistence {
         return CURRENT_VERSION;
     }
 
-    public static String cleanUpUnusedNodes(String input) {
-        String toReturn = GWTParserUtil.cleanupNodes(input, "Scenario", SIMULATION_DESCRIPTOR_NODE);
+    public static String cleanUpUnusedNodes(String rawXml) {
+        String toReturn = GWTParserUtil.cleanupNodes(rawXml, "Scenario", SIMULATION_DESCRIPTOR_NODE);
         for (String setting : SETTINGS) {
             toReturn = GWTParserUtil.cleanupNodes(toReturn, SIMULATION_DESCRIPTOR_NODE, setting);
         }
@@ -59,13 +59,15 @@ public class ScenarioSimulationXMLPersistence {
         return toReturn;
     }
 
-    public void migrate(final String rawXml) {
+    public String migrate(final String rawXml) {
         if (rawXml == null || rawXml.trim().equals("")) {
             throw new IllegalArgumentException("Malformed file, content is empty!");
         }
 
-        migrateIfNecessary(rawXml);
-        cleanUpUnusedNodes(rawXml);
+        String migratedXml = migrateIfNecessary(rawXml);
+        String cleanedXML = cleanUpUnusedNodes(migratedXml);
+
+        return cleanedXML;
     }
 
     public String migrateIfNecessary(String rawXml) {

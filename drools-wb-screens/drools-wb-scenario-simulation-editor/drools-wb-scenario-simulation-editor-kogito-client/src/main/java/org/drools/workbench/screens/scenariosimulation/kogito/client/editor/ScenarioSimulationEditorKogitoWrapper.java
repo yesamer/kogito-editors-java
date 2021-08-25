@@ -368,9 +368,9 @@ public class ScenarioSimulationEditorKogitoWrapper extends MultiPageEditorContai
             throw new IllegalArgumentException("Malformed file, content is empty!");
         }
 
-        ScenarioSimulationXMLPersistence.getInstance().migrate(rawXml);
-
-        SCESIMMainJs.unmarshall(rawXml, SCESIM, getJSInteropUnmarshallCallback());
+        SCESIMMainJs.unmarshall(ScenarioSimulationXMLPersistence.getInstance().migrate(rawXml),
+                                SCESIM,
+                                getJSInteropUnmarshallCallback());
     }
 
     private JSIName makeJSINameForSCESIM() {
