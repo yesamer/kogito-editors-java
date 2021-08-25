@@ -33,6 +33,7 @@ import com.google.gwt.xml.client.XMLParser;
  * This because, the native GWT XML API are used in the Parser, and this is the only
  * way to test it. Please notice, GWTTestCase relies on Junit3, therefore no @Test annotation
  * are required. Methods must have 'test' prefix.
+ * To launch this Test class in your IDE, you need to include `src/main/java/` in your test source classpath.
  */
 public class GWTParserUtilTest extends GWTTestCase {
 
